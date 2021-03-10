@@ -4,6 +4,7 @@ import numpy as np
 import xgboost as xgb
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.utils.class_weight import compute_sample_weight
 from matplotlib import pyplot as plt
 
 # %%
@@ -14,6 +15,13 @@ y = df.pop('rating')
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+#compute sample weights
+sw_train = compute_sample_weight("balanced", y_train)
+
+print(f"train sample weights are {sw_train}")
+#compute full dataset weights
+sw_full = compute_sample_weight("balanced", y)
+print(f"full sample weights are {sw_full}")
 # %%
 # xgb.plot_tree(xg_clf,num_trees=10)
 # xgb.to_graphviz(bst, num_trees=2)
@@ -27,15 +35,25 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 clf = xgb.XGBClassifier()
 
 #WORK ON TUNING LATER
-parameters = {
-     'learning_rate': [.01, .30],
-     'max_depth': [2, 3, 4,  6, 9],
-     'min_child_weight' : [ 1, 3, 5, 7 ],
-     'gamma': [ 0.0, 0.2 ],
-     'colsample_bytree': [0.5, 0.75, 1],
-     'n_estimators': [25, 50, 100],
 
+parameters = {
+     'learning_rate': [.01],
+     'max_depth': [2, 5],
+     'min_child_weight' : [1, 3],
+     'gamma': [ 0.0 ],
+     'colsample_bytree': [0.5, 1],
+     'n_estimators': [25, 50]
 }
+
+# parameters = {
+#      'learning_rate': [.01, .30],
+#      'max_depth': [2, 3, 4,  6, 9],
+#      'min_child_weight' : [ 1, 3, 5, 7 ],
+#      'gamma': [ 0.0, 0.2 ],
+#      'colsample_bytree': [0.5, 0.75, 1],
+#      'n_estimators': [25, 50, 100],
+
+# }
 
 # parameters = {
 #      "learning_rate"    : [0.05, 0.10, 0.15, 0.20, 0.25, 0.30 ] ,
@@ -46,16 +64,13 @@ parameters = {
 #      "n_estimators"     : [150]
 #      }
 
-#NEXT UP
-# fit_params={'sample_weight': sw_train}
-
 grid = GridSearchCV(clf,
                     parameters, n_jobs=3,
                     scoring="neg_log_loss",
                     cv=5, verbose=10,
                     )
 
-grid.fit(X_train, y_train)
+grid.fit(X_train, y_train, sample_weight = sw_train )
 
 # %% 
 
@@ -77,7 +92,7 @@ plt.show()
 
 # %% Retrain on all data and export model
 print(xgb_latest.get_params())
-xgb_latest.fit(X, y)
+xgb_latest.fit(X, y, sample_weight= sw_full)
 print(xgb_latest.get_params())
 xgb_latest.save_model('xgb_full_train.json')
 # %% Sanity check
