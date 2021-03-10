@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import xgboost as xgb
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.utils.class_weight import compute_sample_weight
 from matplotlib import pyplot as plt
 
@@ -36,46 +36,43 @@ clf = xgb.XGBClassifier()
 
 #WORK ON TUNING LATER
 
+#best 
+
+# With a model made, create a service which responds to HTTP requests. We only need one endpoint:...
+# XGBClassifier(base_score=0.5, booster='gbtree', colsample_bylevel=1,
+#               colsample_bynode=1, colsample_bytree=0.5, gamma=0.0, gpu_id=-1,
+#               importance_type='gain', interaction_constraints='',
+#               learning_rate=0.01, max_delta_step=0, max_depth=2,
+#               min_child_weight=1, missing=nan, monotone_constraints='()',
+#               n_estimators=25, n_jobs=4, num_parallel_tree=1,
+#               objective='multi:softprob', random_state=0, reg_alpha=0,
+#               reg_lambda=1, scale_pos_weight=None, subsample=1,
+#               tree_method='auto', validate_parameters=1, verbosity=None)
+
+# {'objective': 'multi:softprob', 'use_label_encoder': True, 'base_score': 0.5, 'booster': 'gbtree', 'colsample_bylevel': 1, 'colsample_bynode': 1, 'colsample_bytree': 0.4, 'gamma': 0.1, 'gpu_id': -1, 'importance_type': 'gain', 'interaction_constraints': '', 'learning_rate': 0.1, 'max_delta_step': 0, 'max_depth': 4, 'min_child_weight': 3, 'missing': nan, 'monotone_constraints': '()', 'n_estimators': 50, 'n_jobs': 3, 'num_parallel_tree': 1, 'random_state': 0, 'reg_alpha': 0, 'reg_lambda': 1, 'scale_pos_weight': None, 'subsample': 1, 'tree_method': 'auto', 'validate_parameters': 1, 'verbosity': None}
+
 parameters = {
-     'learning_rate': [.01],
-     'max_depth': [2, 5],
-     'min_child_weight' : [1, 3],
-     'gamma': [ 0.0 ],
-     'colsample_bytree': [0.5, 1],
-     'n_estimators': [25, 50]
-}
+     "learning_rate"    : [0.05, 0.10, 0.15, 0.20, 0.25, 0.30 ] ,
+     "max_depth"        : [ 3, 4, 5, 6, 8, 10, 12, 15],
+     "min_child_weight" : [ 1, 3, 5, 7 ],
+     "gamma"            : [ 0.0, 0.1, 0.2 , 0.3, 0.4 ],
+     "colsample_bytree" : [ 0.3, 0.4, 0.5 , 0.7 ],
+     "n_estimators"     : [25, 50, 100, 150]
+     }
 
-# parameters = {
-#      'learning_rate': [.01, .30],
-#      'max_depth': [2, 3, 4,  6, 9],
-#      'min_child_weight' : [ 1, 3, 5, 7 ],
-#      'gamma': [ 0.0, 0.2 ],
-#      'colsample_bytree': [0.5, 0.75, 1],
-#      'n_estimators': [25, 50, 100],
-
-# }
-
-# parameters = {
-#      "learning_rate"    : [0.05, 0.10, 0.15, 0.20, 0.25, 0.30 ] ,
-#      "max_depth"        : [ 3, 4, 5, 6, 8, 10, 12, 15],
-#      "min_child_weight" : [ 1, 3, 5, 7 ],
-#      "gamma"            : [ 0.0, 0.1, 0.2 , 0.3, 0.4 ],
-#      "colsample_bytree" : [ 0.3, 0.4, 0.5 , 0.7 ],
-#      "n_estimators"     : [150]
-#      }
-
-grid = GridSearchCV(clf,
-                    parameters, n_jobs=3,
+cv = RandomizedSearchCV(clf,
+                    parameters,n_iter=10, n_jobs=3,
                     scoring="neg_log_loss",
                     cv=5, verbose=10,
                     )
 
-grid.fit(X_train, y_train, sample_weight = sw_train )
+cv.fit(X_train, y_train, sample_weight = sw_train )
+
 
 # %% 
 
 # model.dump_model('dump.raw.txt')
-bst = grid.best_estimator_
+bst = cv.best_estimator_
 
 bst.save_model('best_xgb_cv.json')
 
