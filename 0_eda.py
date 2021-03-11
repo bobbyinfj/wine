@@ -1,3 +1,6 @@
+"""
+Exploratory Data Analysis for Wine Data
+"""
 from avro.datafile import DataFileReader, DataFileWriter
 from avro.io import DatumReader, DatumWriter
 
