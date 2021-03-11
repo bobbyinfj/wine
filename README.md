@@ -43,33 +43,8 @@ Although predictions seem reasonable given the data (for a quick test, copy and 
 
 ### Metrics on Holdout Dataset from CV Fit Model:
 
-  precision    recall  f1-score   support
+![Metrics](metrics.jpg)
 
-           1       0.31      0.94      0.46        51
-
-           2       0.29      0.35      0.32       151
-
-           3       0.35      0.23      0.28       204
-
-           4       0.40      0.21      0.28       261
-
-           5       0.22      0.18      0.20       157
-
-           6       0.32      0.35      0.33       119
-
-           7       0.24      0.44      0.31        41
-
-           8       0.16      0.50      0.25        14
-
-           9       0.00      0.00      0.00         2
-
-          10       0.00      0.00      0.00         0
-
-    accuracy                           0.30      1000
-
-   macro avg       0.23      0.32      0.24      1000
-
-weighted avg       0.32      0.30      0.29      1000
 
 ## Which of the six features above is least important?
 
